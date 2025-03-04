@@ -6,23 +6,29 @@
  * @author Nathan Campos <nathan@innoveworkshop.com>
  */
 
+/**
+ * Representation of a folder with sub-folders and photos inside of it.
+ */
 class Gallery {
 	public $photos = array();
 	public $albums = array();
-	private $site_root;
-	private $root;
-	private $path;
+	public $name;
+	public $site_root;
+	public $root;
+	public $path;
 
 	/**
 	 * Constructs a gallery object.
 	 *
-	 * @param string $site_root Root of the photo viewer website relative to
-	 *                          the server's root. (Allows the gallery to be
-								inside a subfolder of the server)
-	 * @param string $root      Photo viewer root path.
-	 * @param string $path      Current gallery path relative to the root.
+	 * @param string $site_root Root of the photo viewer website relative to the
+	 *                          server's root. (Allows the gallery to be inside a
+								subfolder of the server)
+	 * @param string $root      Photo viewer storage root path.
+	 * @param string $path      Gallery path relative to the storage root.
+	 * @param string $name      Title of the album.
 	 */
-	public function __construct($site_root, $root, $path) {
+	public function __construct($site_root, $root, $path, $name = "Album") {
+		$this->name = $name;
 		$this->site_root = $site_root;
 		$this->root = realpath($root);
 		$this->path = $path;
@@ -30,6 +36,10 @@ class Gallery {
 		// Ensure that the path is inside root and exists.
 		if (!$this->path_valid($path))
 			throw new Exception("Invalid path");
+		
+		// Fix double slash in path.
+		if ((strlen($path) > 1) && ($path[0] === '/') && ($path[1] === '/'))
+			$this->path = substr($path, 1);
 		
 		// Populate ourselves.
 		$this->populate();
@@ -49,9 +59,10 @@ class Gallery {
 					continue;
 				
 				// Store each entry in its rightful place.
-				$entry_path = $this->full_path() . "/$entry";
-				if (is_dir($entry_path)) {
-					array_push($this->albums, $entry);
+				if (is_dir($this->full_path() . "/$entry")) {
+					$gallery = new Gallery($this->site_root, $this->root,
+						$this->path . "/$entry", $entry);
+					array_push($this->albums, $gallery);
 				} else {
 					array_push($this->photos, $entry);
 				}
@@ -98,5 +109,17 @@ class Gallery {
 	 */
 	public function is_viewer_root() {
 		return $this->root === $this->full_path();
+	}
+	
+	/**
+	 * Gets the path to the parent folder.
+	 *
+	 * @return Path of the parent folder or '/' if already at root.
+	 */
+	public function parent_path() {
+		if ($this->is_viewer_root())
+			return '/';
+		
+		return str_replace('\\', '/', dirname($this->path));
 	}
 }

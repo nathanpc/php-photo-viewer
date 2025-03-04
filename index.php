@@ -8,8 +8,9 @@ $site_root = dirname($_SERVER['PHP_SELF']);
 $photos_root = __DIR__ . '/photos';
 
 // Get URL paramters.
-$num_cols = isset($_GET['cols']) ? $_GET['cols'] : 5;
+$view = isset($_GET['view']) ? $_GET['view'] : 'folder';
 $path = isset($_GET['path']) ? $_GET['path'] : '/';
+$cols = isset($_GET['cols']) ? $_GET['cols'] : 5;
 ?>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -72,7 +73,8 @@ $path = isset($_GET['path']) ? $_GET['path'] : '/';
 	<div id="albums">
 		<?php if (!$gallery->is_viewer_root()) { ?>
 			<div class="album">
-				<a href="#">
+				<a href="?view=folder&path=<?= urlencode($gallery->parent_path())
+						?>&cols=<?= $cols ?>">
 					<img src="./navigate_left.png" />
 					<span>Previous</span>
 				</a>
@@ -81,9 +83,10 @@ $path = isset($_GET['path']) ? $_GET['path'] : '/';
 		
 		<?php foreach ($gallery->albums as $album) { ?>
 			<div class="album">
-				<a href="#">
+				<a href="?view=folder&path=<?= urlencode($album->path)
+						?>&cols=<?= $cols ?>">
 					<img src="./folder.png" />
-					<span><?= $album ?></span>
+					<span><?= $album->name ?></span>
 				</a>
 			</div>
 		<?php } ?>

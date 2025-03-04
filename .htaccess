@@ -1,0 +1,14 @@
+# Protect the .htaccess file.
+<FilesMatch "\.htaccess$">
+	Order Allow,Deny
+	Deny from all
+</FilesMatch>
+
+# Protect our source file.
+<FilesMatch "photo_viewer.php">
+	Order Allow,Deny
+	Deny from all
+</FilesMatch>
+
+# Protect private folders folder.
+RedirectMatch 404 /\.git

@@ -14,17 +14,21 @@ class Photo {
 	public $path;
 	public $exif;
 	private $server_path;
+	private $thumb_root;
 	
 	/**
 	 * Construcs a photo object from a file path.
 	 *
-	 * @param string  $root     Photo viewer storage root path.
-	 * @param string  $path     Path to the photo file relative to the root
-	 *                          gallery.
-	 * @param boolean $populate Should we populate the object with its child
-	 *                          elements?
+	 * @param string  $root       Photo viewer storage root path.
+	 * @param string  $path       Path to the photo file relative to the root
+	 *                            gallery.
+	 * @param string  $thumb_root Absolute path to the root of the thumbnails
+	 *                            directory.
+	 * @param boolean $populate   Should we populate the object with its child
+	 *                            elements?
 	 */
-	public function __construct($root, $path, $populate = true) {
+	public function __construct($root, $path, $thumb_root, $populate = true) {
+		$this->thumb_root = $thumb_root;
 		$this->path = $path;
 		$this->abs_path = realpath($root . $path);
 		$this->server_path = Gallery::PathRelRoot($this->abs_path);
@@ -106,6 +110,48 @@ class Photo {
 		
 		return (int)round($flen);
 	}
+	
+	/**
+	 * Gets the href link for a thumbnail of this image.
+	 *
+	 * @warning This method will generate a thumbnail if needed.
+	 *
+	 * @return string Link to the thumbnail of the image.
+	 */
+	public function thumb_href() {
+		$thumb_path = $this->thumb_root . $this->path;
+		
+		// Return the file if it already exists.
+		if (file_exists($thumb_path))
+			return Gallery::PathRelRoot($thumb_path);
+
+		// Ensure that the directory exists.
+		$dir = dirname($thumb_path);
+		if (!is_dir($dir))
+			mkdir($dir, 0755, true);
+		
+		// Generate the thumbnail.
+		$img = self::GenerateThumbnail($this->abs_path);
+		$img->writeImage($thumb_path);
+
+		return Gallery::PathRelRoot($thumb_path);
+	}
+	
+	/**
+	 * Generates a thumbnail for an image.
+	 *
+	 * @param string $path     Path to the image to have its thumbnail generated.
+	 * @param int    $max_size Maximum size of each side of the image.
+	 *
+	 * @return Imagick Generated thumbnail image.
+	 */
+	public static function GenerateThumbnail($path, $max_size = 400) {
+		// Perform the resize operation.
+		$img = new Imagick($path);
+		$img->thumbnailImage($max_size, $max_size, true);
+		
+		return $img;
+	}
 }
 
 /**
@@ -116,25 +162,29 @@ class Gallery {
 	public $albums = array();
 	public $name;
 	public $site_root;
+	public $thumb_root;
 	public $root;
 	public $path;
 
 	/**
 	 * Constructs a gallery object.
 	 *
-	 * @param string  $site_root Root of the photo viewer website relative to the
-	 *                           server's root. (Allows the gallery to be inside a
-								 subfolder of the server)
-	 * @param string  $root      Photo viewer storage root path.
-	 * @param string  $path      Gallery path relative to the storage root.
-	 * @param string  $name      Title of the album.
-	 * @param boolean $populate  Should we populate the object with its child
-	 *                           elements?
+	 * @param string  $site_root  Root of the photo viewer website relative to the
+	 *                            server's root. (Allows the gallery to be inside
+								  a subfolder of the server)
+	 * @param string  $thumb_root Absolute path to the root of the thumbnails
+	 *                            directory.
+	 * @param string  $root       Photo viewer storage root path.
+	 * @param string  $path       Gallery path relative to the storage root.
+	 * @param string  $name       Title of the album.
+	 * @param boolean $populate   Should we populate the object with its child
+	 *                            elements?
 	 */
-	public function __construct($site_root, $root, $path, $name = "Album",
-			$populate = true) {
+	public function __construct($site_root, $thumb_root, $root, $path,
+			$name = "Album", $populate = true) {
 		$this->name = $name;
 		$this->site_root = $site_root;
+		$this->thumb_root = $thumb_root;
 		$this->root = realpath($root);
 		$this->path = $path;
 		
@@ -167,11 +217,12 @@ class Gallery {
 				// Store each entry in its rightful place.
 				$path = $this->path . "/$entry";
 				if (is_dir($this->full_path() . "/$entry")) {
-					$gallery = new Gallery($this->site_root, $this->root, $path,
-						$entry, false);
+					$gallery = new Gallery($this->site_root, $this->thumb_root,
+						$this->root, $path, $entry, false);
 					array_push($this->albums, $gallery);
 				} else {
-					array_push($this->photos, new Photo($this->root, $path));
+					array_push($this->photos, new Photo($this->root, $path,
+						$this->thumb_root));
 				}
 			}
 			

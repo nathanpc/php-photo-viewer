@@ -6,6 +6,7 @@ require_once __DIR__ . '/photo_viewer.php';
 // Settings
 $site_root = dirname($_SERVER['PHP_SELF']);
 $photos_root = __DIR__ . '/photos';
+$thumb_root = __DIR__ . '/thumbs';
 
 // Get URL paramters.
 $view = isset($_GET['view']) ? $_GET['view'] : 'folder';
@@ -84,7 +85,7 @@ if ($cols == 0)
 	<?php try { ?>	
 	<?php if ($view === 'folder') { ?>
 	<!-- Album view -->
-	<?php $gallery = new Gallery($site_root, $photos_root, $path); ?>
+	<?php $gallery = new Gallery($site_root, $thumb_root, $photos_root, $path); ?>
 	
 	<!-- Albums -->
 	<div id="albums">
@@ -127,7 +128,7 @@ if ($cols == 0)
 
 			<td class="photo">
 				<a href="?view=photo&path=<?= urlencode($photo->path) ?>">
-					<img src="<?= $photo->href() ?>" />
+					<img src="<?= $photo->thumb_href() ?>" />
 					<p><?= basename($photo->path) ?></p>
 				</a>
 			</td>
@@ -138,7 +139,7 @@ if ($cols == 0)
 	
 	<?php } else if ($view === 'photo') { ?>
 	<!-- Single photo view -->
-	<?php $photo = new Photo($photos_root, $path); ?>
+	<?php $photo = new Photo($photos_root, $path, $thumb_root); ?>
 	
 	<table id="photo-detail" cellpadding="0" cellspacing="0" border="0"
 			width="100%" height="100%">

@@ -1,0 +1,17 @@
+{
+  "name": "nathanpc/php-photo-viewer",
+  "description": "A super lightweight and retro-friendly PHP 5.4 photo viewer library and website",
+  "authors": [
+    {
+      "name": "Nathan Campos",
+      "email": "nathan@innoveworkshop.com",
+      "homepage": "https://nathancampos.me/"
+    }
+  ],
+  "require": {
+    "php": ">5.4",
+	"ext-exif": "*",
+	"ext-imagick": "*"
+  }
+}
+

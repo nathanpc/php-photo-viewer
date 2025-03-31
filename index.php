@@ -14,6 +14,10 @@ $path = isset($_GET['path']) ? $_GET['path'] : '/';
 $cols = isset($_GET['cols']) ? $_GET['cols'] : 5;
 if ($cols == 0)
 	$cols = 5;
+
+// Fix site root.
+if ($site_root == '/')
+	$site_root = '';
 ?>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />

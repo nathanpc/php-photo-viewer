@@ -156,6 +156,20 @@ class Photo {
 
 		return $img;
 	}
+
+	/**
+	 * Compares two Photo objects and determines which should come first. This
+	 * method is supposed to be used in conjunction with usort.
+	 *
+	 * @param Photo $a First item to compare.
+	 * @param Photo $b Second item to compare.
+	 *
+	 * @return int Return value for usort.
+	 */
+	public static function SortCompare($a, $b) {
+		return strtolower(basename($a->path)) <=>
+			strtolower(basename($b->path));
+	}
 }
 
 /**
@@ -233,6 +247,10 @@ class Gallery {
 			// Close the directory handle.
 			closedir($handle);
 		}
+
+		// Sort things out.
+		usort($this->albums, [Gallery::class, 'SortCompare']);
+		usort($this->photos, [Photo::class, 'SortCompare']);
 	}
 
 	/**
@@ -292,6 +310,20 @@ class Gallery {
 	 * @return string Path relative to server's root.
 	 */
 	public static function PathRelRoot($path) {
-		return str_replace('\\', '/', substr($path, strlen($_SERVER['DOCUMENT_ROOT'])));
+		return str_replace('\\', '/', substr($path,
+			strlen($_SERVER['DOCUMENT_ROOT'])));
+	}
+
+	/**
+	 * Compares two Gallery objects and determines which should come first. This
+	 * method is supposed to be used in conjunction with usort.
+	 *
+	 * @param Gallery $a First item to compare.
+	 * @param Gallery $b Second item to compare.
+	 *
+	 * @return int Return value for usort.
+	 */
+	public static function SortCompare($a, $b) {
+		return strtolower($a->name) <=> strtolower($b->name);
 	}
 }

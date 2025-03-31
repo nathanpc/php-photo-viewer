@@ -9,6 +9,7 @@ RUN apk update && apk add \
 	php83-exif \
 	php83-pecl-imagick \
 	imagemagick \
+	imagemagick-jpeg \
 	&& rm -rf /var/cache/apk/*
 
 # Switch to our website root.
@@ -21,6 +22,9 @@ COPY composer.json .
 COPY *.php .
 COPY *.png .
 COPY .htaccess .
+
+# Fix permissions.
+RUN chown apache:apache thumbs
 
 # Ensure we have all the PHP things ready.
 RUN composer install

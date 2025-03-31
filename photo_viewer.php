@@ -130,9 +130,13 @@ class Photo {
 		if (!is_dir($dir))
 			mkdir($dir, 0755, true);
 
-		// Generate the thumbnail.
-		$img = self::GenerateThumbnail($this->abs_path);
-		$img->writeImage($thumb_path);
+		try {
+			// Generate the thumbnail.
+			$img = self::GenerateThumbnail($this->abs_path);
+			$img->writeImage($thumb_path);
+		} catch (ImagickException $e) {
+			trigger_error($e->getMessage(), E_USER_ERROR);
+		}
 
 		return Gallery::PathRelRoot($thumb_path);
 	}

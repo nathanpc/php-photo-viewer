@@ -15,7 +15,7 @@ class Photo {
 	public $exif;
 	private $server_path;
 	private $thumb_root;
-	
+
 	/**
 	 * Construcs a photo object from a file path.
 	 *
@@ -32,16 +32,16 @@ class Photo {
 		$this->path = $path;
 		$this->abs_path = realpath($root . $path);
 		$this->server_path = Gallery::PathRelRoot($this->abs_path);
-		
+
 		// Check if the path is actually valid.
 		if (!Gallery::IsPathValid($root, $this->path))
 			throw new Exception("Invalid path");
-		
+
 		// Get EXIF data from image.
 		if ($populate)
 			$this->exif = @exif_read_data($this->abs_path);
 	}
-	
+
 	/**
 	 * Gets the path to the gallery that contains this photo.
 	 *
@@ -50,7 +50,7 @@ class Photo {
 	public function gallery_path() {
 		return str_replace('\\', '/', dirname($this->path));
 	}
-	
+
 	/**
 	 * Gets the path to the image relative to the server root.
 	 *
@@ -59,7 +59,7 @@ class Photo {
 	public function href() {
 		return $this->server_path;
 	}
-	
+
 	/**
 	 * Gets the file size in bytes.
 	 *
@@ -68,7 +68,7 @@ class Photo {
 	public function file_size() {
 		return $this->exif['FileSize'];
 	}
-	
+
 	/**
 	 * Gets the timestamp of the photo in ISO8601 format.
 	 *
@@ -77,7 +77,7 @@ class Photo {
 	public function iso8601() {
 		return date('Y-m-d H:i:s', $this->exif['FileDateTime']);
 	}
-	
+
 	/**
 	 * Gets the photo dimensions.
 	 *
@@ -93,7 +93,7 @@ class Photo {
 			'mp' => number_format($mp, 1)
 		);
 	}
-	
+
 	/**
 	 * Computes the focal length used when taking this photo.
 	 *
@@ -103,14 +103,14 @@ class Photo {
 		// Do we even have something to compute?
 		if (!isset($this->exif['FocalLength']))
 			return 0;
-			
+
 		// Compute the focal length.
 		$parts = explode('/', $this->exif['FocalLength']);
 		$flen = floatval($parts[0]) / floatval($parts[1]);
-		
+
 		return (int)round($flen);
 	}
-	
+
 	/**
 	 * Gets the href link for a thumbnail of this image.
 	 *
@@ -120,7 +120,7 @@ class Photo {
 	 */
 	public function thumb_href() {
 		$thumb_path = $this->thumb_root . $this->path;
-		
+
 		// Return the file if it already exists.
 		if (file_exists($thumb_path))
 			return Gallery::PathRelRoot($thumb_path);
@@ -129,14 +129,14 @@ class Photo {
 		$dir = dirname($thumb_path);
 		if (!is_dir($dir))
 			mkdir($dir, 0755, true);
-		
+
 		// Generate the thumbnail.
 		$img = self::GenerateThumbnail($this->abs_path);
 		$img->writeImage($thumb_path);
 
 		return Gallery::PathRelRoot($thumb_path);
 	}
-	
+
 	/**
 	 * Generates a thumbnail for an image.
 	 *
@@ -149,7 +149,7 @@ class Photo {
 		// Perform the resize operation.
 		$img = new Imagick($path);
 		$img->thumbnailImage($max_size, $max_size, true);
-		
+
 		return $img;
 	}
 }
@@ -187,15 +187,15 @@ class Gallery {
 		$this->thumb_root = $thumb_root;
 		$this->root = realpath($root);
 		$this->path = $path;
-		
+
 		// Ensure that the path is inside root and exists.
 		if (!self::IsPathValid($this->root, $path))
 			throw new Exception("Invalid path");
-		
+
 		// Fix double slash in path.
 		if ((strlen($path) > 1) && ($path[0] === '/') && ($path[1] === '/'))
 			$this->path = substr($path, 1);
-		
+
 		// Populate ourselves.
 		if ($populate)
 			$this->populate();
@@ -213,7 +213,7 @@ class Gallery {
 				// Ignore special and dot files.
 				if ($entry[0] == '.')
 					continue;
-				
+
 				// Store each entry in its rightful place.
 				$path = $this->path . "/$entry";
 				if (is_dir($this->full_path() . "/$entry")) {
@@ -225,12 +225,12 @@ class Gallery {
 						$this->thumb_root));
 				}
 			}
-			
+
 			// Close the directory handle.
 			closedir($handle);
 		}
 	}
-	
+
 	/**
 	 * Gets the full path to the gallery folder.
 	 *
@@ -239,7 +239,7 @@ class Gallery {
 	public function full_path() {
 		return realpath($this->root . $this->path);
 	}
-	
+
 	/**
 	 * Checks if the gallery is the viewer's root gallery.
 	 *
@@ -249,7 +249,7 @@ class Gallery {
 	public function is_viewer_root() {
 		return $this->root === $this->full_path();
 	}
-	
+
 	/**
 	 * Gets the path to the parent folder.
 	 *
@@ -258,10 +258,10 @@ class Gallery {
 	public function parent_path() {
 		if ($this->is_viewer_root())
 			return '/';
-		
+
 		return str_replace('\\', '/', dirname($this->path));
 	}
-	
+
 	/**
 	 * Checks if a path relative to the root is actually inside it and exists.
 	 *
@@ -270,16 +270,16 @@ class Gallery {
 	 *
 	 * @return boolean TRUE if the path is inside the root and exists.
 	 */
-	public function IsPathValid($root, $path) {
+	public static function IsPathValid($root, $path) {
 		$full_path = realpath($root . $path);
-		
+
 		// Check if the path is higher than the parent folder.
 		if(strcasecmp($full_path, $root) < 0)
 			return false;
-		
+
 		return file_exists($full_path);
 	}
-	
+
 	/**
 	 * Gets the path to the gallery relative to the server root.
 	 *
